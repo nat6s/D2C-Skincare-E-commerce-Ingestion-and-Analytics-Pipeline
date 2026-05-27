@@ -1,113 +1,101 @@
 # D2C Skincare E-commerce Ingestion and Analytics Pipeline
 
 ##  Project Overview
-This project builds an end-to-end data engineering pipeline designed to ingest flat files from a Direct-to-Consumer (D2C) Skincare E-commerce dataset and load them into a relational schema optimized for business intelligence queries. The Python pipeline automates extraction, cleaning, and normalization into a 3-table Star Schema, utilizing MySQL as the core relational data warehouse.
+This project delivers a production-grade, end-to-end data engineering pipeline designed to ingest flat-file transactional logs from a Direct-to-Consumer (D2C) Skincare E-commerce ecosystem. The system automates data extraction, sanitization, and relational normalization into a 3-table **Star Schema** data warehouse using MySQL. 
+
+To transition this from a manual script into an enterprise data platform, the pipeline is fully **containerized using Docker** and **orchestrated via Apache Airflow**, ensuring high availability, environment isolation, and automated workflow scheduling.
 
 ---
 
 ##  Project Architecture & Directory Layout
-The project follows a modular design pattern, separating the ingestion logic (`app/`) from the database definitions (`sql/`) and raw storage (`data/`).
+The repository utilizes a decoupled modular layout separating pipeline orchestration orchestration (`app/` / `dags/`), relational definitions (`sql/`), and infrastructure configuration files.
 
 ```text
 skincare_pipeline_project/
 ├── app/
 │   ├── __init__.py
-│   ├── extract.py      # Extracts raw CSV data using Pandas
-│   ├── transform.py    # Handles data cleaning, missing values, and normalization
-│   ├── load.py         # Manages the SQLAlchemy connection engine to MySQL
-│   └── main.py         # Pipeline orchestrator / entry point
+│   ├── extract.py      # Ingests raw flat-file CSV profiles using Pandas
+│   ├── transform.py    # Standardizes text, manages missing attributes, and normalizes schema
+│   ├── load.py         # Manages SQLAlchemy connection strings to the warehouse
+│   └── main.py         # Baseline script entry-point orchestrator
 ├── data/
 │   └── skincare_dataset.csv  # Raw Kaggle D2C dataset (git-ignored)
 ├── sql/
-│   ├── schema.sql      # MySQL Data Definition Language (DDL) scripts
-│   └── queries.sql     # Analytical business intelligence queries
-├── .gitignore          # Safeguards raw data and caches from version control
-├── README.md           # Project documentation
-└── requirements.txt    # Python library dependencies
- Database Schema Explanation
-The database implementation utilizes a clean Star Schema relational architecture separating context dimensions from event facts. This design minimizes data redundancy, enforces relational integrity via explicit constraints, and optimizes analytical query performance.
+│   ├── schema.sql      # MySQL DDL data definitions (Constraints, Keys, Indexes)
+│   └── queries.sql     # Complex OLAP analytical business intelligence queries
+├── dags/
+│   └── skincare_dag.py # Apache Airflow Directed Acyclic Graph definitions
+├── .gitignore          # Safeguards physical raw assets from remote version control
+├── docker-compose.yaml # Coordinates Docker containers (Airflow Webserver, Scheduler, MySQL)
+├── Dockerfile          # Custom blueprint building the isolated Python runtime environment
+├── README.md           # Master platform system documentation
+└── requirements.txt    # Python third-party dependency manifest
+ Database Schema Design
+The target analytical storage architecture organizes raw rows into a optimized relational Star Schema designed to accelerate Read-heavy Analytical (OLAP) processing.
 
 Data Models:
-dim_customers (Dimension Table): Stores descriptive demographic information tracking unique user profiles. Key attributes include customer_id (Primary Key), gender, age (enforced by a logical boundary check constraint), location, and signup_date.
+dim_customers (Dimension Table): Captures customer demographic and signup profiles. Enforces data cleanliness with an explicit age boundary validation check constraint (chk_age).
 
-dim_products (Dimension Table): Hosts product catalog configurations including product names, category classifications, unit prices, and localized skin-type targeting profiles.
+dim_products (Dimension Table): Stores structural retail properties including specific classifications and skin-type targets.
 
-fact_orders (Fact Table): Captures point-of-sale operational measurements (Quantity, Total Amount, Traffic Source, Order Timestamp) referencing key dimensions via foreign key mapping constraints. It includes an explicit optimized index on the transaction timestamp field to guarantee performant time-series analysis.
+fact_orders (Fact Table): Tracks operational point-of-sale transactional metrics linked directly to core dimension keys. Built with an optimized chronological database index (idx_orders_date) for fast time-series partitioning.
 
+ Pipeline Orchestration & Containerization
+ Infrastructure Isolation (Docker)
+The entire ecosystem is containerized to guarantee environment reproducibility. This eliminates the "it works on my machine" problem by deploying:
+
+A dedicated MySQL Container acting as the target data warehouse.
+
+Airflow Containers hosting the orchestration engine, web UI dashboard, and worker runtimes securely isolated from the host machine operating system.
+
+ Workflow Automation (Apache Airflow)
+Rather than executing scripts sequentially in a single risk-prone run, execution is broken down into a structured Directed Acyclic Graph (DAG). This guarantees:
+
+Modular Failure Points: If a data load fails due to network latency, the extraction phase does not need to re-run.
+
+Automated Retry Policies: Configured with robust handling exceptions to automatically retry tasks after an outage.
+
+Visual Visibility: Full access to status monitors through the Airflow Web UI dashboard.
+
+Plaintext
+[extract_raw_csv] ──► [transform_clean_data] ──► [load_to_mysql_warehouse]
  Step-by-Step Setup and Execution
-1. Database Initialization
-Open MySQL Workbench and log into your local server instance.
+1. Prerequisite Environments
+Ensure your machine has the following foundational services running locally:
 
-Run the following command in a new query window to initialize your target schema:
+Docker Desktop
 
-SQL
-CREATE DATABASE skincare_db;
-Open sql/schema.sql inside your MySQL editor, ensure you are pointed at the skincare_db schema context, and execute the file to construct the empty database structure and relationships.
+Git
 
-2. Environment Configuration
-Open app/load.py and modify the connection string credentials with your local MySQL administrative configurations:
+2. Dataset Positioning
+Download the raw spreadsheet asset from Kaggle (kaushalvyas16/d2c-skincare-e-commerce-analytics-dataset).
 
-Python
-DATABASE_URL = 'mysql+pymysql://YOUR_USERNAME:YOUR_PASSWORD@localhost:3306/skincare_db'
-Place your downloaded dataset file from Kaggle into the local data/ folder and ensure it is named exactly skincare_dataset.csv.
+Extract the archive zip file, rename the raw CSV sheet to skincare_dataset.csv, and move it directly into your local data/ folder directory.
 
-3. Dependency Installation & Execution
-Open your terminal panel inside the root directory (skincare_pipeline_project) and run the sequential commands corresponding to your operating system environment:
+3. Deploying the Platform Architecture
+Launch the containerized environment using Docker. Open your terminal window inside your root project folder and run:
 
-On Windows (Command Prompt / PowerShell):
 Bash
-# Install required Python packages from the requirements file
-python -m pip install -r requirements.txt
+# Build custom images and spin up the environment in detached mode
+docker-compose up --build -d
+This single command automatically spins up the MySQL server, provisions the skincare_db schema, builds the internal target table layout from schema.sql, and launches the Apache Airflow portal.
 
-# Execute the ETL pipeline engine
-python app/main.py
-On Mac / Linux:
-Bash
-# Install required Python packages from the requirements file
-pip3 install -r requirements.txt
+4. Running the Pipeline Engine
+Open your browser and navigate to the Airflow Interface at http://localhost:8080.
 
-# Execute the ETL pipeline engine
-python3 app/main.py
-4. Running Business Analytics
-Once the terminal logs confirm a successful database ingestion sequence, return to your MySQL Workbench query tool, open sql/queries.sql, and run the analytical script modules to fetch operational insights across five core business vectors:
+Locate the pipeline named d2c_skincare_etl_pipeline.
 
-Product Category Revenue and Order Volume Aggregations
+Toggle the DAG switch to Active and trigger the workflow manually (or let it run on its automated schedule).
 
-Demographic Profiling Linked to Skin-Type Segment Preferences
+ Analytical Data Intelligence
+Once the Airflow interface registers a successful workflow log trail, navigate to your database environment or query utility tool and run the scripts available inside sql/queries.sql to generate insights across these 5 business vectors:
 
-Marketing Acquisition Channel Conversion Efficiency Tracking
+Category Volume Aggregations: Aggregates order velocities and overall margins across distinct product lineups.
 
-Chronological Time-Series Month-Over-Month Sales Trends
+Skin-Concern Segments: Joins user demographics to skin targeting attributes to map consumer buying indicators.
 
-Geographic Window Functions Ranking Top-Tier VIP Customer Valuations
+Marketing Channel Efficiency: Calculates specific customer acquisition value performance filtered via explicit HAVING threshold boundaries.
 
+Time-Series Revenue Vectors: Generates historical, chronological month-over-month performance trends.
 
----
-
-### Part 3: Local Pipeline Execution & Global Deployment (Terminal Script)
-
-Once files are saved, open the built-in terminal window in VS Code and run these final commands sequentially to load your database and push your source repository up onto GitHub:
-
-```bash
-# 1. Install dependencies and run the ETL script
-# (Swap to 'pip3' and 'python3' if running on a Mac machine)
-python -m pip install -r requirements.txt
-python app/main.py
-
-# 2. Build git exclusion list mapping to hide source spreadsheets
-# (If using Windows Command Prompt instead of PowerShell, replace single quotes with double quotes)
-echo '__pycache__/' > .gitignore
-echo '*.pyc' >> .gitignore
-echo '.DS_Store' >> .gitignore
-echo 'data/' >> .gitignore
-
-# 3. Initialize local git repository
-git init
-git add .
-git commit -m "Initial commit: Modular MySQL ETL pipeline and portfolio analytics script package"
-git branch -M main
-
-# 4. Link and upload codebase to GitHub
-# (Remember to update the url string with your actual repository endpoints)
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/skincare-pipeline-project.git
-git push -u origin main
+Geographical Window Groupings: Employs advanced window function mechanics (DENSE_RANK() OVER) to identify and isolate the top 3 high-value VIP patrons across individual regions.
