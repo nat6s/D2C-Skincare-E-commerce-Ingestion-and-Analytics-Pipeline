@@ -10,7 +10,7 @@ def load_to_db(customers_df, products_df, orders_df):
     db_user = "root"
     db_pass = "root" 
     db_name = "skincare_analytics"
-    host = "mysql"  # This matches the service name we just added to docker-compose!
+    host = "mysql" 
     port = "3306"
     
     connection_url = f"mysql+mysqlconnector://{db_user}:{db_pass}@{host}:{port}/{db_name}"
