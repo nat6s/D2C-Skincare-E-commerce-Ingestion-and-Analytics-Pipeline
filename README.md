@@ -1,3 +1,4 @@
+Markdown
 # D2C Skincare E-commerce Ingestion and Analytics Pipeline
 
 ##  Project Overview
@@ -8,7 +9,7 @@ To transition this from a manual script into an enterprise data platform, the pi
 ---
 
 ##  Project Architecture & Directory Layout
-The repository utilizes a decoupled modular layout separating pipeline orchestration orchestration (`app/` / `dags/`), relational definitions (`sql/`), and infrastructure configuration files.
+The repository utilizes a decoupled modular layout separating pipeline orchestration (`app/` / `dags/`), relational definitions (`sql/`), and infrastructure configuration files.
 
 ```text
 skincare_pipeline_project/
@@ -31,7 +32,7 @@ skincare_pipeline_project/
 ├── README.md           # Master platform system documentation
 └── requirements.txt    # Python third-party dependency manifest
  Database Schema Design
-The target analytical storage architecture organizes raw rows into a optimized relational Star Schema designed to accelerate Read-heavy Analytical (OLAP) processing.
+The target analytical storage architecture organizes raw rows into an optimized relational Star Schema designed to accelerate Read-heavy Analytical (OLAP) processing.
 
 Data Models:
 dim_customers (Dimension Table): Captures customer demographic and signup profiles. Enforces data cleanliness with an explicit age boundary validation check constraint (chk_age).
@@ -56,46 +57,3 @@ Modular Failure Points: If a data load fails due to network latency, the extract
 Automated Retry Policies: Configured with robust handling exceptions to automatically retry tasks after an outage.
 
 Visual Visibility: Full access to status monitors through the Airflow Web UI dashboard.
-
-Plaintext
-[extract_raw_csv] ──► [transform_clean_data] ──► [load_to_mysql_warehouse]
- Step-by-Step Setup and Execution
-1. Prerequisite Environments
-Ensure your machine has the following foundational services running locally:
-
-Docker Desktop
-
-Git
-
-2. Dataset Positioning
-Download the raw spreadsheet asset from Kaggle (kaushalvyas16/d2c-skincare-e-commerce-analytics-dataset).
-
-Extract the archive zip file, rename the raw CSV sheet to skincare_dataset.csv, and move it directly into your local data/ folder directory.
-
-3. Deploying the Platform Architecture
-Launch the containerized environment using Docker. Open your terminal window inside your root project folder and run:
-
-Bash
-# Build custom images and spin up the environment in detached mode
-docker-compose up --build -d
-This single command automatically spins up the MySQL server, provisions the skincare_db schema, builds the internal target table layout from schema.sql, and launches the Apache Airflow portal.
-
-4. Running the Pipeline Engine
-Open your browser and navigate to the Airflow Interface at http://localhost:8080.
-
-Locate the pipeline named d2c_skincare_etl_pipeline.
-
-Toggle the DAG switch to Active and trigger the workflow manually (or let it run on its automated schedule).
-
- Analytical Data Intelligence
-Once the Airflow interface registers a successful workflow log trail, navigate to your database environment or query utility tool and run the scripts available inside sql/queries.sql to generate insights across these 5 business vectors:
-
-Category Volume Aggregations: Aggregates order velocities and overall margins across distinct product lineups.
-
-Skin-Concern Segments: Joins user demographics to skin targeting attributes to map consumer buying indicators.
-
-Marketing Channel Efficiency: Calculates specific customer acquisition value performance filtered via explicit HAVING threshold boundaries.
-
-Time-Series Revenue Vectors: Generates historical, chronological month-over-month performance trends.
-
-Geographical Window Groupings: Employs advanced window function mechanics (DENSE_RANK() OVER) to identify and isolate the top 3 high-value VIP patrons across individual regions.
