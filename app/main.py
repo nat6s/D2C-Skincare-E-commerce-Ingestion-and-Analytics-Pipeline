@@ -1,27 +1,35 @@
-import sys
 import os
+import sys
 
-# Appends current directory to system path for clean imports execution
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Ensure local directory lookup contexts match across Airflow containers
+dag_dir = os.path.dirname(os.path.abspath(__file__))
+if dag_dir not in sys.path:
+    sys.path.insert(0, dag_dir)
 
 from extract import extract_raw_data
 from transform import transform_data
 from load import load_to_db
 
-def run_pipeline():
-    print("=== STARTING SKINCARE D2C ETL PIPELINE ===")
+def run_etl_pipeline():
+    print("\n=======================================================")
+    print("  PRODUCTION DATA PIPELINE RUNTIME LOG: RUNNING ETL")
+    print("=======================================================\n")
     
-    # Dynamic path routing to look for the CSV within the data folder
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    raw_data_path = os.path.join(base_dir, "data", "skincare_dataset.csv")
+    # Point directly to your local nested data folder path context
+    data_directory = os.path.join(dag_dir, "data")
     
-    try:
-        raw_df = extract_raw_data(raw_data_path)
-        customers, products, orders = transform_data(raw_df)
-        load_to_db(customers, products, orders)
-        print("=== PIPELINE EXECUTION SUCCESSFUL ===")
-    except Exception as e:
-        print(f" Pipeline Failed Error Trace: {str(e)}")
+    # Task 1: Extraction Execution Layer
+    raw_flat_dataframe = extract_raw_data(data_directory)
+    
+    # Task 2: Structural Split Data Transformation Layer
+    clean_cust, clean_prod, clean_ord = transform_data(raw_flat_dataframe)
+    
+    # Task 3: Load Engine Layer
+    load_to_db(clean_cust, clean_prod, clean_ord)
+    
+    print("\n=======================================================")
+    print("  PIPELINE PROCESSING COMPLETE: READY FOR ANALYTICS")
+    print("=======================================================\n")
 
 if __name__ == "__main__":
-    run_pipeline()
+    run_etl_pipeline()
