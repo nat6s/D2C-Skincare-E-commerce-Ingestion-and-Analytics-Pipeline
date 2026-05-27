@@ -5,7 +5,7 @@ This project builds an end-to-end data engineering pipeline designed to ingest f
 
 ---
 
-## 🏗️ Project Architecture & Directory Layout
+##  Project Architecture & Directory Layout
 The project follows a modular design pattern, separating the ingestion logic (`app/`) from the database definitions (`sql/`) and raw storage (`data/`).
 
 ```text
@@ -24,7 +24,7 @@ skincare_pipeline_project/
 ├── .gitignore          # Safeguards raw data and caches from version control
 ├── README.md           # Project documentation
 └── requirements.txt    # Python library dependencies
-🗄️ Database Schema Explanation
+ Database Schema Explanation
 The database implementation utilizes a clean Star Schema relational architecture separating context dimensions from event facts. This design minimizes data redundancy, enforces relational integrity via explicit constraints, and optimizes analytical query performance.
 
 Data Models:
@@ -34,7 +34,7 @@ dim_products (Dimension Table): Hosts product catalog configurations including p
 
 fact_orders (Fact Table): Captures point-of-sale operational measurements (Quantity, Total Amount, Traffic Source, Order Timestamp) referencing key dimensions via foreign key mapping constraints. It includes an explicit optimized index on the transaction timestamp field to guarantee performant time-series analysis.
 
-🚀 Step-by-Step Setup and Execution
+ Step-by-Step Setup and Execution
 1. Database Initialization
 Open MySQL Workbench and log into your local server instance.
 
