@@ -2,7 +2,7 @@ import pandas as pd
 
 def transform_data(df: pd.DataFrame):
     """Cleans raw data, handles missing attributes, and normalizes into star schema DataFrames."""
-    print("⚙️ [Transform] Cleaning and normalizing data layout...")
+    print(" [Transform] Cleaning and normalizing data layout...")
     
     # 1. Standardize Data Types and Handle Missing Numeric Values
     df['age'] = df['age'].fillna(df['age'].median()).astype(int)
@@ -27,5 +27,5 @@ def transform_data(df: pd.DataFrame):
     # 5. Extract and Deduplicate fact_orders
     orders_df = df[['order_id', 'customer_id', 'product_id', 'order_date', 'quantity', 'total_amount', 'traffic_source']].drop_duplicates(subset=['order_id'])
     
-    print(f"✔️ Normalization complete: {len(customers_df)} unique customers, {len(products_df)} unique products, {len(orders_df)} unique orders.")
+    print(f" Normalization complete: {len(customers_df)} unique customers, {len(products_df)} unique products, {len(orders_df)} unique orders.")
     return customers_df, products_df, orders_df
