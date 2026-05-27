@@ -1,12 +1,11 @@
-
 # D2C Skincare E-commerce Ingestion and Analytics Pipeline
 
-## Project Overview
+##  Project Overview
 This project builds an end-to-end data engineering pipeline designed to ingest flat files from a Direct-to-Consumer (D2C) Skincare E-commerce dataset and load them into a relational schema optimized for business intelligence queries. The Python pipeline automates extraction, cleaning, and normalization into a 3-table Star Schema, utilizing MySQL as the core relational data warehouse.
 
 ---
 
-## Project Architecture & Directory Layout
+## 🏗️ Project Architecture & Directory Layout
 The project follows a modular design pattern, separating the ingestion logic (`app/`) from the database definitions (`sql/`) and raw storage (`data/`).
 
 ```text
@@ -25,7 +24,7 @@ skincare_pipeline_project/
 ├── .gitignore          # Safeguards raw data and caches from version control
 ├── README.md           # Project documentation
 └── requirements.txt    # Python library dependencies
-Database Schema Explanation
+🗄️ Database Schema Explanation
 The database implementation utilizes a clean Star Schema relational architecture separating context dimensions from event facts. This design minimizes data redundancy, enforces relational integrity via explicit constraints, and optimizes analytical query performance.
 
 Data Models:
@@ -33,8 +32,9 @@ dim_customers (Dimension Table): Stores descriptive demographic information trac
 
 dim_products (Dimension Table): Hosts product catalog configurations including product names, category classifications, unit prices, and localized skin-type targeting profiles.
 
-fact_orders (Fact Table): Captures point-of-sale operational measurements (Quantity, Total Amount, Traffic Source, Order Timestamp) referencing key dimensions via foreign key mapping constraints. It includes an explicit optimized index on the transaction timestamp field to guarantee performant time-series analysis
-Step-by-Step Setup and Execution
+fact_orders (Fact Table): Captures point-of-sale operational measurements (Quantity, Total Amount, Traffic Source, Order Timestamp) referencing key dimensions via foreign key mapping constraints. It includes an explicit optimized index on the transaction timestamp field to guarantee performant time-series analysis.
+
+🚀 Step-by-Step Setup and Execution
 1. Database Initialization
 Open MySQL Workbench and log into your local server instance.
 

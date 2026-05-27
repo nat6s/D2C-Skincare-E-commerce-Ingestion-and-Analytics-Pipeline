@@ -1,0 +1,74 @@
+-- Query 1: Product Category Performance (Grouped Analysis & JOINs)
+-- Business Question: Which skincare categories generate the most revenue, and what is their average order value?
+SELECT 
+    p.category,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    SUM(o.quantity) AS total_items_sold,
+    SUM(o.total_amount) AS total_revenue,
+    ROUND(AVG(o.total_amount), 2) AS average_order_value
+FROM fact_orders o
+JOIN dim_products p ON o.product_id = p.product_id
+GROUP BY p.category
+ORDER BY total_revenue DESC;
+
+-- Query 2: Customer Demographics & Skin Target Insights (Multi-Table Aggregation)
+-- Business Question: What skin-type targets are most popular among different genders?
+SELECT 
+    c.gender,
+    p.skin_type_target,
+    COUNT(o.order_id) AS total_purchases,
+    SUM(o.quantity) AS items_bought
+FROM fact_orders o
+JOIN dim_customers c ON o.customer_id = c.customer_id
+JOIN dim_products p ON o.product_id = p.product_id
+WHERE c.gender IS NOT NULL AND p.skin_type_target IS NOT NULL
+GROUP BY c.gender, p.skin_type_target
+ORDER BY c.gender, total_purchases DESC;
+
+-- Query 3: Marketing Channel Efficiency (Summary Statistics & Filtering)
+-- Business Question: Which traffic sources bring in the highest-spending customers, filtering out low-sample anomalies?
+SELECT 
+    traffic_source,
+    COUNT(DISTINCT customer_id) AS unique_customers,
+    SUM(total_amount) AS total_sales,
+    ROUND(AVG(total_amount), 2) AS avg_spent_per_order
+FROM fact_orders
+GROUP BY traffic_source
+HAVING COUNT(DISTINCT customer_id) > 5
+ORDER BY total_sales DESC;
+
+-- Query 4: Monthly Sales Trends (MySQL Specific Time-Series Trend Analysis)
+-- Business Question: How is our revenue trending month-over-month? Is the D2C brand growing chronologically?
+SELECT 
+    DATE_FORMAT(order_date, '%Y-%m-01') AS sales_month,
+    COUNT(DISTINCT order_id) AS total_orders,
+    SUM(total_amount) AS monthly_revenue
+FROM fact_orders
+GROUP BY DATE_FORMAT(order_date, '%Y-%m-01')
+ORDER BY sales_month ASC;
+
+-- Query 5: Top 3 High-Value Customers per Location (The Window Function)
+-- Business Question: Who are our top 3 "VIP" customers in each geographic city/location based on their lifetime spend?
+WITH customer_lifetime_value AS (
+    SELECT 
+        c.location,
+        c.customer_id,
+        c.age,
+        SUM(o.total_amount) AS total_lifetime_spend,
+        DENSE_RANK() OVER (
+            PARTITION BY c.location 
+            ORDER BY SUM(o.total_amount) DESC
+        ) AS customer_rank
+    FROM fact_orders o
+    JOIN dim_customers c ON o.customer_id = c.customer_id
+    GROUP BY c.location, c.customer_id, c.age
+)
+SELECT 
+    location,
+    customer_rank,
+    customer_id,
+    age,
+    ROUND(total_lifetime_spend, 2) AS total_spent
+FROM customer_lifetime_value
+WHERE customer_rank <= 3
+ORDER BY location, customer_rank;
